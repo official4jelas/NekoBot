@@ -41,7 +41,18 @@ module.exports = async (m, sock, store) => {
     }
   });
   for (let name in pg.plugins) {
-    const plugin = pg.plugins[name];
+      let plugin;
+        if (typeof pg.plugins[name].run === "function") {
+          let anu = pg.plugins[name];
+          plugin = anu.run;
+          for (let prop in anu) {
+            if (prop !== "code") {
+              plugin[prop] = anu[prop];
+            }
+          }
+        } else {
+          plugin = pg.plugins[name];
+        }
     if (!plugin) return;
     if (typeof plugin.events === "function") {
       if (
@@ -60,12 +71,12 @@ module.exports = async (m, sock, store) => {
         continue;
     }
     const Scraper = await scraper.list();
-    const usedPrefix = m.body.startsWith(m.prefix);
+    const usedPrefix = config.prefix.includes(m.prefix);
     const cmd = usedPrefix
       ? m.command.toLowerCase() === plugin.command ||
         plugin?.alias?.includes(m.command.toLowerCase())
       : "";
-    const text = m.text;
+    const text = m.text
     try {
       if (cmd) {
         if (plugin.loading) m.react("🕐");
@@ -83,8 +94,7 @@ module.exports = async (m, sock, store) => {
             return m.reply(config.messages.botAdmin);
           }
         }
-        await plugin
-          .run(m, {
+        await plugin(m, {
             sock,
             config,
             text,
@@ -106,10 +116,36 @@ module.exports = async (m, sock, store) => {
               );
             }
           });
+        await require("./case.js")(m, {
+            sock,
+            config,
+            text,
+            plugins: Object.values(pg.plugins).filter((a) => a.alias),
+            Func,
+            Scraper,
+            Uploader,
+            store,
+            isAdmin,
+            botAdmin,
+            isPrems,
+            isBanned,
+          });
       }
     } catch (error) {
       if (error.name) {
-        m.reply(Func.jsonFormat(error));
+        for (let owner of config.owner) {
+          let jid = await sock.onWhatsApp(owner + "@s.whatsapp.net");
+          if (!jid[0].exists) continue;
+          let caption = "*– 乂 Error - Terdeteksi*\n"
+             caption += `> *-* Nama command : ${m.command}\n`
+             caption += `> *-* Lokasi File : ${name}`
+             caption += `\n\n${Func.jsonFormat(error)}`
+   
+          sock.sendMessage(owner + "@s.whatsapp.net", {
+               text: caption
+            })
+        }
+        m.reply("*– 乂 Error - Terdeteksi !*\n> Command gagal dijalankan karena terjadi error\n> Laporan telah terkirim kepada owner kami dan akan segera di perbaiki !");
       } else {
         m.reply(Func.jsonFormat(error));
       }

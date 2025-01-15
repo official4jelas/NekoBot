@@ -1,23 +1,25 @@
 module.exports = {
-  command: "example",
-  alias: ["exp"],
-  settings: {
-    owner: true,
-  },
-  description: "Example Features Bot",
-  async run(m, { text }) {
-    let cap = `*– 乂 Example - Code*
+    command: "example",
+    alias: ["exp"],
+    settings: {
+        owner: true,
+    },
+    description: "Example Features Bot",
+    async run(m, {
+        text
+    }) {
+        let cap = `*– 乂 Example - Code*
 > Pilih type 1 atau 2 Sesuai Dengan kebutuhan anda`;
-    if (!text)
-      return m.reply({
-        poll: {
-          name: cap,
-          values: [`${m.prefix + m.command} 1`, `${m.prefix + m.command} 2`],
-          selectableCount: 1,
-        },
-      });
-    if (Number(text) === 1) {
-      let code = `
+        if (!text)
+            return m.reply({
+                poll: {
+                    name: cap,
+                    values: [`${m.prefix + m.command} 1`, `${m.prefix + m.command} 2`],
+                    selectableCount: 1,
+                },
+            });
+        if (Number(text) === 1) {
+            let code = `
 class Command {
        constructor() {
        this.command = ""
@@ -33,9 +35,9 @@ class Command {
 }
 
 module.exports = new Command();`;
-      m.reply(code);
-    } else if (Number(text) === 2) {
-      let code = `
+            m.reply(code);
+        } else if (Number(text) === 2) {
+            let code = `
 module.exports = {
       command: "",
       alias: [],
@@ -47,14 +49,14 @@ module.exports = {
       //do something...
    }
 }`;
-      m.reply(code);
-    } else
-      return m.reply({
-        poll: {
-          name: cap,
-          values: [`${m.prefix + m.command} 1`, `${m.prefix + m.command} 2`],
-          selectableCount: 1,
-        },
-      });
-  },
+            m.reply(code);
+        } else
+            return m.reply({
+                poll: {
+                    name: cap,
+                    values: [`${m.prefix + m.command} 1`, `${m.prefix + m.command} 2`],
+                    selectableCount: 1,
+                },
+            });
+    },
 };

@@ -1,18 +1,21 @@
 module.exports = {
-  command: "bank",
-  alias: ["wallet", "atm", "banking"],
-  category: ["rpg"],
-  settings: {},
-  loading: true,
+    command: "bank",
+    alias: ["wallet", "atm", "banking"],
+    category: ["rpg"],
+    settings: {},
+    loading: true,
 
-  async run(m, { text, sock }) {
-    let user = db.list().user[m.sender];
-    if (!user.bank) user.bank = 0;
+    async run(m, {
+        text,
+        sock
+    }) {
+        let user = db.list().user[m.sender];
+        if (!user.bank) user.bank = 0;
 
-    const formatMoney = (amount) => amount.toLocaleString("id-ID");
+        const formatMoney = (amount) => amount.toLocaleString("id-ID");
 
-    if (!text) {
-      return m.reply(`╭═══❯ 🏦 ᴠ-ʙᴀɴᴋ ❮═══╗
+        if (!text) {
+            return m.reply(`╭═══❯ 🏦 ᴠ-ʙᴀɴᴋ ❮═══╗
 │
 │ 👤 ᴀᴄᴄᴏᴜɴᴛ ɪɴꜰᴏ
 │ ────────────────
@@ -31,19 +34,19 @@ module.exports = {
 │ 💰 ${m.prefix}bank pull <amount>
 │
 ╰═══════════════════╯`);
-    }
+        }
 
-    const [command, amountText] = text.split(" ");
-    const amount = parseInt(amountText);
+        const [command, amountText] = text.split(" ");
+        const amount = parseInt(amountText);
 
-    if (!amount) return m.reply(`❌ ᴍᴀꜱᴜᴋᴋᴀɴ ɴᴏᴍɪɴᴀʟ`);
-    if (isNaN(amount)) return m.reply(`❌ ɴᴏᴍɪɴᴀʟ ʜᴀʀᴜꜱ ʙᴇʀᴜᴘᴀ ᴀɴɢᴋᴀ`);
-    if (amount < 1000) return m.reply(`❌ ᴍɪɴɪᴍᴀʟ ᴛʀᴀɴꜱᴀᴋꜱɪ ʀᴘ 1,000`);
+        if (!amount) return m.reply(`❌ ᴍᴀꜱᴜᴋᴋᴀɴ ɴᴏᴍɪɴᴀʟ`);
+        if (isNaN(amount)) return m.reply(`❌ ɴᴏᴍɪɴᴀʟ ʜᴀʀᴜꜱ ʙᴇʀᴜᴘᴀ ᴀɴɢᴋᴀ`);
+        if (amount < 1000) return m.reply(`❌ ᴍɪɴɪᴍᴀʟ ᴛʀᴀɴꜱᴀᴋꜱɪ ʀᴘ 1,000`);
 
-    switch (command.toLowerCase()) {
-      case "deposit": {
-        if (user.rpg.money < amount)
-          return m.reply(`╭═══❯ ❌ ꜰᴀɪʟᴇᴅ ❮═══╗
+        switch (command.toLowerCase()) {
+            case "deposit": {
+                if (user.rpg.money < amount)
+                    return m.reply(`╭═══❯ ❌ ꜰᴀɪʟᴇᴅ ❮═══╗
 │
 │ 💵 ᴜᴀɴɢ ᴛᴜɴᴀɪ ᴛɪᴅᴀᴋ ᴄᴜᴋᴜᴘ
 │ 💳 ᴀɴᴅᴀ ʙᴜᴛᴜʜ: ʀᴘ ${formatMoney(amount)}
@@ -51,13 +54,13 @@ module.exports = {
 │
 ╰═══════════════════╯`);
 
-        await m.reply(`💳 ᴍᴇᴍᴘʀᴏꜱᴇꜱ ᴅᴇᴘᴏꜱɪᴛ...`);
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+                await m.reply(`💳 ᴍᴇᴍᴘʀᴏꜱᴇꜱ ᴅᴇᴘᴏꜱɪᴛ...`);
+                await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        user.rpg.money -= amount;
-        user.bank += amount;
+                user.rpg.money -= amount;
+                user.bank += amount;
 
-        return m.reply(`╭═══❯ 🏦 ᴅᴇᴘᴏꜱɪᴛ ❮═══╗
+                return m.reply(`╭═══❯ 🏦 ᴅᴇᴘᴏꜱɪᴛ ❮═══╗
 │
 │ ✅ ᴅᴇᴘᴏꜱɪᴛ ʙᴇʀʜᴀꜱɪʟ!
 │ 💸 ᴊᴜᴍʟᴀʜ: ʀᴘ ${formatMoney(amount)}
@@ -68,11 +71,11 @@ module.exports = {
 │ 💵 ᴄᴀꜱʜ: ʀᴘ ${formatMoney(user.rpg.money)}
 │
 ╰═══════════════════╯`);
-      }
+            }
 
-      case "pull": {
-        if (user.bank < amount)
-          return m.reply(`╭═══❯ ❌ ꜰᴀɪʟᴇᴅ ❮═══╗
+            case "pull": {
+                if (user.bank < amount)
+                    return m.reply(`╭═══❯ ❌ ꜰᴀɪʟᴇᴅ ❮═══╗
 │
 │ 💳 ꜱᴀʟᴅᴏ ᴛɪᴅᴀᴋ ᴄᴜᴋᴜᴘ
 │ 💰 ᴀɴᴅᴀ ʙᴜᴛᴜʜ: ʀᴘ ${formatMoney(amount)}
@@ -80,13 +83,13 @@ module.exports = {
 │
 ╰═══════════════════╯`);
 
-        await m.reply(`💳 ᴍᴇᴍᴘʀᴏꜱᴇꜱ ᴘᴇɴᴀʀɪᴋᴀɴ...`);
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+                await m.reply(`💳 ᴍᴇᴍᴘʀᴏꜱᴇꜱ ᴘᴇɴᴀʀɪᴋᴀɴ...`);
+                await new Promise((resolve) => setTimeout(resolve, 1500));
 
-        user.bank -= amount;
-        user.rpg.money += amount;
+                user.bank -= amount;
+                user.rpg.money += amount;
 
-        return m.reply(`╭═══❯ 🏦 ᴘᴇɴᴀʀɪᴋᴀɴ ❮═══╗
+                return m.reply(`╭═══❯ 🏦 ᴘᴇɴᴀʀɪᴋᴀɴ ❮═══╗
 │
 │ ✅ ᴘᴇɴᴀʀɪᴋᴀɴ ʙᴇʀʜᴀꜱɪʟ!
 │ 💸 ᴊᴜᴍʟᴀʜ: ʀᴘ ${formatMoney(amount)}
@@ -97,10 +100,10 @@ module.exports = {
 │ 💵 ᴄᴀꜱʜ: ʀᴘ ${formatMoney(user.rpg.money)}
 │
 ╰═══════════════════╯`);
-      }
+            }
 
-      default:
-        return m.reply(`❌ ᴄᴏᴍᴍᴀɴᴅ ᴛɪᴅᴀᴋ ᴠᴀʟɪᴅ!`);
-    }
-  },
+            default:
+                return m.reply(`❌ ᴄᴏᴍᴍᴀɴᴅ ᴛɪᴅᴀᴋ ᴠᴀʟɪᴅ!`);
+        }
+    },
 };

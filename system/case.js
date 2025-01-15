@@ -17,23 +17,92 @@ const {
 const pkg = require("../lib/case");
 const Case = new pkg("./system/case.js");
 
-module.exports = async (m, sock, store) => {
+module.exports = async(m, {
+            sock,
+            config,
+            text,
+            plugins,
+            Func,
+            Scraper,
+            Uploader,
+            store,
+            isAdmin,
+            botAdmin,
+            isPrems,
+            isBanned,
+          }) => {
     if (m.isBot) return;
-    let isCommand =
-        (m.prefix && m.body.startsWith(m.prefix) + m.command) || false;
     const quoted = m.isQuoted ? m.quoted : m;
-    const scrape = await scraper.list();
 
     switch (m.command) {
+        case "jadwalsholat": {
+            const axios = require('axios');
+            const cheerio = require('cheerio');
+            if (!text) return m.reply("> Masukan nama kota")
+            const kota = text?.toLowerCase() || 'jakarta'
+            try {
+                const {
+                    data
+                } = await axios.get(`https://jadwal-sholat.tirto.id/kota-${kota}`);
+                const $ = cheerio.load(data);
+
+                const jadwal = $('tr.currDate td').map((i, el) => $(el).text()).get();
+
+                if (jadwal.length === 7) {
+                    const [tanggal, subuh, duha, dzuhur, ashar, maghrib, isya] = jadwal;
+
+                    const zan = `
+╭──[ *Jadwal Sholat* ]──✧
+᎒⊸ *Kota*: ${kota.charAt(0).toUpperCase() + kota.slice(1)}
+᎒⊸ *Tanggal*: ${tanggal}
+
+╭──[ *Waktu Sholat* ]──✧
+᎒⊸ Subuh: ${subuh}
+᎒⊸ Duha: ${duha}
+᎒⊸ Dzuhur: ${dzuhur}
+᎒⊸ Ashar: ${ashar}
+᎒⊸ Maghrib: ${maghrib}
+᎒⊸ Isya: ${isya}
+╰────────────•`;
+
+                    await m.reply(zan);
+                } else {
+                    await m.reply('Jadwal sholat tidak ditemukan. Pastikan nama kota sesuai.');
+                }
+            } catch (error) {
+                await m.reply('error');
+            }
+        };
+        break
+        case "brat": {
+            let input = m.isQuoted ? m.quoted.body : text;
+            if (!input) return m.reply("> Reply/Masukan pessn");
+            m.reply(config.messages.wait);
+            let media = await axios.get(`https://aqul-brat.hf.space/api/brat?text=${text}`, {
+                responseType: 'arraybuffer'
+            }).then((a) => a.data);
+            let sticker = await writeExif({
+                mimetype: "image",
+                data: media,
+            }, {
+                packName: config.sticker.packname,
+                packPublish: config.sticker.author,
+            }, );
+
+            await m.reply({
+                sticker
+            });
+        }
+        break;
         case "daftar": {
             let user = db.list().user[m.sender]
             if (user.register) return m.reply("> Kamu sudah mendaftar !");
-            if (!m.text) return m.reply("> Masukan nama anda !");
-            let list = Object.values(db.list().user).find((a) => a.name.toLowerCase() === m.text.toLowerCase());
+            if (!text) return m.reply("> Masukan nama anda !");
+            let list = Object.values(db.list().user).find((a) => a.name.toLowerCase() === text.toLowerCase());
             if (list) return m.reply("> Nama tersebut sudah digunakan !");
             let bonus = 1000;
             user.register = true
-            user.name = m.text
+            user.name = text
             user.rpg.money += bonus
             user.rpg.exp += bonus
             let cap = `*– 乂 Pendaftaran - Berhasil !*
@@ -46,16 +115,16 @@ module.exports = async (m, sock, store) => {
         }
         break
         case "zzz": {
-            let list = await scraper.list().zzz.list();
-            if (!m.text) return m.reply("> Masukan nama character dari game ZZZ");
-            let chara = list.find((a) => a.name.toLowerCase() === m.text.toLowerCase());
+            let list = await Scraper.zzz.list();
+            if (!text) return m.reply("> Masukan nama character dari game ZZZ");
+            let chara = list.find((a) => a.name.toLowerCase() === text.toLowerCase());
             if (!chara) return m.reply(`> Character tidak ditemukan !
 
 *– 乂 Berikut ${list.length} character dari game ZZZ*
 
 ${list.map((a) => Object.entries(a).map(([a, b]) => `> *- ${a.capitalize()} :* ${b}`).join('\n')).join("\n\n")}`);
 
-            let data = await scraper.list().zzz.chara(m.text);
+            let data = await Scraper.zzz.chara(text);
             let cap = "*– 乂 Zenless Zone Zero - Character*\n"
             cap += Object.entries(data.info).map(([a, b]) => `> *- ${a.capitalize()} :* ${b}`).join("\n")
             cap += "\n\n*– Statistic Character :*\n"
@@ -86,8 +155,8 @@ ${list.map((a) => Object.entries(a).map(([a, b]) => `> *- ${a.capitalize()} :* $
                 if (quoted.msg?.seconds > 10)
                     throw "> Video diatas durasi 10 detik gabisa";
                 let exif;
-                if (m.text) {
-                    let [packname, author] = m.text.split(/[,|\-+&]/);
+                if (text) {
+                    let [packname, author] = text.split(/[,|\-+&]/);
                     exif = {
                         packName: packname ? packname : "",
                         packPublish: author ? author : "",
@@ -126,10 +195,10 @@ ${list.map((a) => Object.entries(a).map(([a, b]) => `> *- ${a.capitalize()} :* $
                 }
             } else if (
                 /(https?:\/\/.*\.(?:png|jpg|jpeg|webp|mov|mp4|webm|gif))/i.test(
-                    m.text,
+                    text,
                 )
             ) {
-                for (let url of Func.isUrl(m.text)) {
+                for (let url of Func.isUrl(text)) {
                     await delay(1500);
                 }
             } else
@@ -137,24 +206,7 @@ ${list.map((a) => Object.entries(a).map(([a, b]) => `> *- ${a.capitalize()} :* $
         }
         break;
 
-        case "brat": {
-            let input = m.isQuoted ? m.quoted.body : m.text;
-            if (!input) return m.reply("> Reply/Masukan pessn");
-            m.reply(config.messages.wait);
-            let media = await scrape.brat(input);
-            let sticker = await writeExif({
-                mimetype: "image",
-                data: media,
-            }, {
-                packName: config.sticker.packname,
-                packPublish: config.sticker.author,
-            }, );
 
-            await m.reply({
-                sticker
-            });
-        }
-        break;
         case "cases": {
             if (!m.isOwner) return m.reply(config.messages.owner);
             let cap = "*– 乂 Cara - Pengunaan*\n"
@@ -163,19 +215,19 @@ ${list.map((a) => Object.entries(a).map(([a, b]) => `> *- ${a.capitalize()} :* $
             cap += "> *`--delete`* untuk menghapus fitur case\n"
             cap += "\n*– 乂 List Case yang tersedia*\n"
             cap += Case.list().map((a, i) => `> *- ${i + 1}.* ${a}`).join("\n")
-            if (!m.text) return m.reply(cap);
+            if (!text) return m.reply(cap);
 
-            if (m.text.includes("--add")) {
+            if (text.includes("--add")) {
                 if (!m.quoted) return m.reply("> Reply fitur case yang ingin di simpan");
                 let status = Case.add(m.quoted.body);
                 m.reply(status ? "> Berhasil menambahkan case baru !" : "> Gagal menambahkan case baru");
-            } else if (m.text.includes("--delete")) {
-                let input = m.text.replace("--delete", "").trim();
+            } else if (text.includes("--delete")) {
+                let input = text.replace("--delete", "").trim();
                 if (!input) return m.reply("> Masukan nama case yang ingin di hapus !")
                 let status = Case.delete(input);
                 m.reply(status ? `> Berhasil menghapus case ${input} !` : `> Case ${input} tidak ditemukan silahkan cek list case yang tersedia !`);
-            } else if (m.text.includes("--get")) {
-                let input = m.text.replace("--get", "").trim();
+            } else if (text.includes("--get")) {
+                let input = text.replace("--get", "").trim();
                 if (!input) return m.reply("> Masukan nama case yang ingin di ambil !")
                 if (!Case.list().includes(input)) return m.reply("> case tidak ditemukan !")
                 let status = Case.get(input);
@@ -183,44 +235,6 @@ ${list.map((a) => Object.entries(a).map(([a, b]) => `> *- ${a.capitalize()} :* $
             }
         }
         break
-        default:
-            if (
-                [">", "eval", "=>"].some((a) =>
-                    m.command.toLowerCase().startsWith(a),
-                ) &&
-                m.isOwner
-            ) {
-                let evalCmd = "";
-                try {
-                    evalCmd = /await/i.test(m.text) ?
-                        eval("(async() => { " + m.text + " })()") :
-                        eval(m.text);
-                } catch (e) {
-                    evalCmd = e;
-                }
-                new Promise((resolve, reject) => {
-                        try {
-                            resolve(evalCmd);
-                        } catch (err) {
-                            reject(err);
-                        }
-                    })
-                    ?.then((res) => m.reply(util.format(res)))
-                    ?.catch((err) => m.reply(util.format(err)));
-            }
-            if (
-                ["$", "exec"].some((a) => m.command.toLowerCase().startsWith(a)) &&
-                m.isOwner
-            ) {
-                try {
-                    exec(m.text, async (err, stdout) => {
-                        if (err) return m.reply(util.format(err));
-                        if (stdout) return m.reply(util.format(stdout));
-                    });
-                } catch (e) {
-                    await m.reply(util.format(e));
-                }
-            }
     }
 };
 

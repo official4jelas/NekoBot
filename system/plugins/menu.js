@@ -185,18 +185,71 @@ ${list.map((a) => `┃${m.prefix}menu ${a}`).join("\n")}
 
 > © Developed by AxellNetwork\n> Powered by @⁨WhatsApp⁩`;
             m.reply({
-                text: caption,
-                contextInfo: {
-                    mentionedJid: sock.parseMention(caption),
-                    externalAdReply: {
-                        title: "© NekoBot | Playground",
-                        body: "Better WhatsApp bot",
-                        mediaType: 1,
-                        sourceUrl: "https://whatsapp.com/channel/0029Vb0YWvYJ3jusF2nk9U1P",
-                        thumbnailUrl: "https://files.catbox.moe/yupd7z.jpg",
-                        renderLargerThumbnail: true,
-                    },
+                image: {
+                    url: "https://files.catbox.moe/yupd7z.jpg"
                 },
+                caption,
+                footer: config.name,
+                contextInfo: {
+                    mentionedJid: [m.sender]
+                },
+                buttons: [{
+                    buttonId: 'action',
+                    buttonText: {
+                        displayText: '📁 LIST - MENU'
+                    },
+                    type: 4,
+                    nativeFlowInfo: {
+                        name: 'single_select',
+                        paramsJson: JSON.stringify({
+                            title: '☘️ Menu – NekoBot',
+                            sections: [{
+                                title: "- ℹ️ INFO - BOT",
+                                rows: [{
+                                    header: '👨‍💻 Server Bot',
+                                    title: 'Menampilkan Informasi Server',
+                                    description: config.name,
+                                    id: 'ping',
+                                }, {
+                                    header: '🤖 Script bot',
+                                    title: 'Script bot Gratis !',
+                                    description: config.name,
+                                    id: '.script',
+                                }]
+                            }, {
+                                title: "- ☘️ Anime - Service",
+                                rows: [{
+                                    header: 'SOKUJA - SERVICE ',
+                                    title: 'Cek Informasi Anime dari sokuja',
+                                    description: config.name,
+                                    id: '.sokuja',
+                                }, {
+                                    header: 'KURONIME - SERVICE ',
+                                    title: 'Cek Informasi Anime dari kuronime',
+                                    description: config.name,
+                                    id: '.kuronime',
+                                }]
+                            }, {
+                                title: "- 🍟 List - Category",
+                                rows: [{
+                                        header: '📁 Category ALL',
+                                        title: 'Menampilkan Semua fitur',
+                                        description: config.name,
+                                        id: '.menu all',
+                                    },
+                                    ...list.map((a) => ({
+                                        header: `📁 Category ${a.toUpperCase()}`,
+                                        title: `Menampilkan fitur ${a}`,
+                                        description: config.name,
+                                        id: `.menu ${a}`,
+                                    }))
+                                ],
+                            }],
+                        }),
+                    },
+                }, ],
+                headerType: 1,
+                viewOnce: true
             });
         }
     },

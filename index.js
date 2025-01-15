@@ -253,18 +253,14 @@
       };
     }
     sock.ev.on("messages.upsert", async (cht) => {
-     console.log(cht);
       if (cht.messages.length === 0) return;
       const chatUpdate = cht.messages[0];
       if (!chatUpdate.message) return;
       const userId = chatUpdate.key.id;
-          console.log(chatUpdate);
           global.m = await serialize(chatUpdate, sock, store);
-          console.log(m)
           if (m.isBot) return 
           if (!m.isOwner && db.list().settings.self) return;
           await require("./system/handler.js")(m, sock, store);
-          await require("./system/case.js")(m, sock, store);
     });
     async function getMessage(key) {
       if (store) {
