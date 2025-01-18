@@ -28,7 +28,7 @@ async function events(m, {
                 caption += `\n\n*- Share the Channel :*\n> https://whatsapp.com/channel/0029VaxNm957dmeaROxJiU36\n*- Join Group Komunitas kami :*\n> https://chat.whatsapp.com/GkigkWVWbyyGe5PyAbXreR`;
 
                 if (!messageSent) {
-                    await sock.sendMessage(metadata.id, {
+                    await sock.sendMessage(config?.id?.group, {
                         image: {
                             url: latestAnime[0].thumbnail
                         },

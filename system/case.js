@@ -4,7 +4,6 @@
 //============================
 
 const util = require("util");
-const config = require("../settings.js");
 const {
     exec
 } = require("child_process");
@@ -17,11 +16,10 @@ const {
 const pkg = require("../lib/case");
 const Case = new pkg("./system/case.js");
 
-module.exports = async(m, {
+module.exports = async(m,
             sock,
             config,
             text,
-            plugins,
             Func,
             Scraper,
             Uploader,
@@ -30,10 +28,8 @@ module.exports = async(m, {
             botAdmin,
             isPrems,
             isBanned,
-          }) => {
-    if (m.isBot) return;
+            ) => {
     const quoted = m.isQuoted ? m.quoted : m;
-
     switch (m.command) {
         case "jadwalsholat": {
             const axios = require('axios');

@@ -15,7 +15,7 @@ async function events(m, {
             isPrems,
             isBanned,
           }) {
-    if (
+     if (
         [">", "eval", "=>"].some((a) =>
             m.command.toLowerCase().startsWith(a),
         ) &&

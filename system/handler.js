@@ -31,6 +31,25 @@ module.exports = async (m, sock, store) => {
   const isBanned = db.list().user[m.sender].banned.status;
   const isAdmin = m.isAdmin;
   const botAdmin = m.isBotAdmin;
+  const Scraper = await scraper.list();
+  const usedPrefix = config.prefix.includes(m.prefix);
+  const text = m.text
+  const isCmd = m.prefix && usedPrefix
+  if (isCmd) {
+   require("./case.js")(m,
+         sock,
+         config,
+         text,
+         Func,
+         Scraper,
+         Uploader,
+         store,
+         isAdmin,
+         botAdmin,
+         isPrems,
+         isBanned,
+      );
+   }
   cron.schedule("* * * * *", () => {
     let user = Object.keys(db.list().user);
     let time = moment.tz(config.tz).format("HH:mm");
@@ -53,8 +72,9 @@ module.exports = async (m, sock, store) => {
         } else {
           plugin = pg.plugins[name];
         }
-    if (!plugin) return;
-    if (typeof plugin.events === "function") {
+    if (!plugin) return;  
+     try {
+     if (typeof plugin.events === "function") {
       if (
         plugin.events.call(sock, m, {
           sock,
@@ -70,15 +90,11 @@ module.exports = async (m, sock, store) => {
       )
         continue;
     }
-    const Scraper = await scraper.list();
-    const usedPrefix = config.prefix.includes(m.prefix);
     const cmd = usedPrefix
       ? m.command.toLowerCase() === plugin.command ||
         plugin?.alias?.includes(m.command.toLowerCase())
       : "";
-    const text = m.text
-    try {
-      if (cmd) {
+    if (cmd) {
         if (plugin.loading) m.react("🕐");
         if (plugin.settings) {
           if (plugin.settings.owner && !m.isOwner) {
@@ -116,21 +132,8 @@ module.exports = async (m, sock, store) => {
               );
             }
           });
-        await require("./case.js")(m, {
-            sock,
-            config,
-            text,
-            plugins: Object.values(pg.plugins).filter((a) => a.alias),
-            Func,
-            Scraper,
-            Uploader,
-            store,
-            isAdmin,
-            botAdmin,
-            isPrems,
-            isBanned,
-          });
       }
+     
     } catch (error) {
       if (error.name) {
         for (let owner of config.owner) {
