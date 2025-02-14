@@ -1,6 +1,7 @@
-**😼 NekoBot | 1.6.0** | ***create by AxellNetwork***
+![Logo](https://files.catbox.moe/obf6o0.jpg)
 
-![Logo](https://files.catbox.moe/8mek19.jpg)
+**😼 NekoBot | 1.7.0** | ***create by AxellNetwork***
+
 
 ```> Simple WhatsApp bot Using Library Baileys```
 

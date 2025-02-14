@@ -72,45 +72,44 @@ class Spotify {
         }
     };
 
-    download = async function dl(url) {
-        try {
-            const response = await axios
-                .get(`https://api.fabdl.com/spotify/get?url=` + url, {
-                    headers: {
-                        Accept: "application/json, text/plain, */*",
-                        "Content-Type": "application/json",
-                        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
-                    },
-                })
-                .catch((e) => e.response);
+    download = async (url) => {
+        const BASEURL = "https://api.fabdl.com";
+        const headers = {
+            Accept: "application/json, text/plain, */*",
+            "Content-Type": "application/json",
+            "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36",
+        };
 
-            if (!response.data.result) {
-                return {
-                    msg: "Failed to get track info",
-                };
-            }
+        try {
             const {
-                data
-            } = await axios
-                .get(
-                    `https://api.fabdl.com/spotify/mp3-convert-task/${response.data.result.gid}/${response.data.result.id}`,
-                )
-                .catch((e) => e.response);
-            if (!data?.result?.download_url)
+                data: info
+            } = await axios.get(`${BASEURL}/spotify/get?url=${url}`, {
+                headers
+            });
+            const {
+                gid,
+                id,
+                name,
+                image,
+                duration_ms
+            } = info.result;
+
+            const {
+                data: download
+            } = await axios.get(`${BASEURL}/spotify/mp3-convert-task/${gid}/${id}`, {
+                headers
+            });
+            if (download.result.download_url) {
                 return {
-                    msg: "Link download not found !",
-                };
-            return {
-                title: response.data.result.name,
-                duration: toTime(response.data.result.duration_ms),
-                cover: response.data.result.image,
-                download: "https://api.fabdl.com" + data?.result?.download_url,
-            };
+                    title: name,
+                    duration: duration_ms,
+                    cover: image,
+                    download: `${BASEURL}${download.result.download_url}`
+                }
+            }
         } catch (error) {
-            return {
-                msg: "Error Detected",
-                err: error.message,
-            };
+            console.error("Error downloading Spotify track:", error.message);
+            throw new Error(error.message);
         }
     };
     playlist = async function playlist(url) {

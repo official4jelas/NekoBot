@@ -17,19 +17,30 @@ module.exports = {
         text
     }) {
         if (!/facebook.com|fb.watch/.test(text) || !text)
-            throw "> Masukan link Facebook nya";
+            throw `*– 乂 **Cara Penggunaan** :*
+> 📝 *Masukkan URL video dari Facebook yang ingin diunduh*
+> 💬 *Contoh :* ${m.prefix + m.command} https://www.facebook.com/watch?v=1234567890
+
+*– 乂 **Petunjuk Lain** :*
+> ✔️ Pastikan video yang dimaksud adalah publik dan dapat diakses.
+> ⚠️ Video yang dilindungi hak cipta atau terbatas mungkin tidak dapat diunduh.`;
+
         let data = await Scraper.facebook(text);
         let random = data.media[0];
         let buffer = await fetch(random).then(async (a) =>
-            Buffer.from(await a.arrayBuffer()), );
+            Buffer.from(await a.arrayBuffer()));
+
         let size = Func.formatSize(buffer.length);
         let limit = await Func.sizeLimit(size, db.list().settings.max_upload);
+
         if (limit.oversize)
-            throw `Maaf saya tidak dapat mengunduh video Facebook tersebut karena ukuran video melebihi batas ukuran yang di tentukan *( ${size} )*, Upgrade status mu ke premium agar dapat batas maksimal hingga *1GB* !`;
-        let cap = "*– 乂 Facebook Downloader*\n";
-        cap += Object.entries(data.metadata)
-            .map(([a, b]) => `> *- *${a.capitalize()} :* ${b}`)
-            .join("\n");
+            throw `*– 乂 **Ukuran Terlalu Besar** :*
+> Video ini memiliki ukuran *( ${size} )* yang melebihi batas yang ditentukan.
+> 🔓 *Upgrade ke Premium* untuk mendapatkan batas unduh hingga *1GB*.`
+
+        let cap = `*– 乂 Informasi Video :*
+> 🎥 *Judul :* ${data.metadata.title}`;
+
         sock.sendFile(m.cht, buffer, null, cap, m);
     },
 };

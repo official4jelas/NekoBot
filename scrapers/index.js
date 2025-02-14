@@ -30,7 +30,7 @@ class Scraper {
         if (!i.endsWith(".js")) return;
         this.#src[name] = require(i);
       } catch (e) {
-        console.log(chalk.red.bold("- Gagal memuat Scraper :".e));
+        console.log(chalk.red.bold("- Gagal memuat Scraper :" + e));
         delete this.#src[name];
       }
     }

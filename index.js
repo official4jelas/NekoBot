@@ -19,6 +19,7 @@
   const readline = require("node:readline");
   const simple = require("./lib/simple.js");
   const fs = require("node:fs");
+  const pkg = require("./package.json");
   const moment = require("moment-timezone");
   const Queque = require("./lib/queque.js");
   const messageQueue = new Queque();
@@ -58,8 +59,6 @@
       rl.question(text, resolve);
     });
   };
-
-  //========[ Loader Execute ]=========
   global.db = new Database(config.database + ".json");
   await db.init();
 
@@ -85,16 +84,27 @@
       stream: "store",
     }),
   });
+  
+  console.log(chalk.green.bold(`
+    --------------------------------------
+    ☘️ Selamat datang di NekoBot
+  terimakasih telah menggunakan script ini 👍
+    --------------------------------------
+  `));
+  
+  console.log(chalk.yellow.bold("📁     Inisialisasi modul..."));
+  console.log(chalk.cyan.bold("- API Baileys Telah Dimuat"));
+  console.log(chalk.cyan.bold("- Sistem File Siap Digunakan"));
+  console.log(chalk.cyan.bold("- Database Telah Diinisialisasi"));
 
-  console.log(chalk.blue.bold("- Hi Welcome to NekoBot !"));
-  console.log(chalk.white.bold("| Terimakasih telah menggunakan Script ini !"));
-  console.log(
-    chalk.white.bold(
-      "| Github saya [Follow] : " +
-        chalk.cyan.bold("https://github.com/AxellNetwork"),
-    ),
-  );
-  console.log(chalk.white.bold("––––––––––––––––––––"));
+  console.log(chalk.blue.bold("\n🤖 Info Bot:"));
+  console.log(chalk.white.bold("  | GitHub: ") + chalk.cyan.bold("https://github.com/AxellNetwork"));
+  console.log(chalk.white.bold("  | Developer: ") + chalk.green.bold("AxellNetwork"));
+  console.log(chalk.white.bold("  | Status Server: ") + chalk.green.bold("Online"));
+  console.log(chalk.white.bold("  | Versi: ") + chalk.magenta.bold(pkg.version));
+  console.log(chalk.white.bold("  | Versi Node.js: ") + chalk.magenta.bold(process.version));
+  
+  console.log(chalk.blue.bold("\n🔁 Memuat plugin dan scraper...")) 
 
   async function system() {
     const { state, saveCreds } = await useMultiFileAuthState(config.sessions);
@@ -103,88 +113,76 @@
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
         auth: state,
-        version: [2, 3000, 1017531287],
+        version: [2, 3000, 1019441105],
         browser: Browsers.ubuntu("Edge"),
-        getMessage: async (key) => {
-          const jid = jidNormalizedUser(key.remoteJid);
-          const msg = await store.loadMessage(jid, key.id);
-          return msg?.message || "";
-        },
-        shouldSyncHistoryMessage: (msg) => {
-          console.log(`\x1b[32mMemuat Chat [${msg.progress}%]\x1b[39m`);
-          return !!msg.syncType;
-        },
       },
-      store,
+      store,    
     );
     store.bind(sock.ev);
     if (!sock.authState.creds.registered) {
       console.log(
         chalk.white.bold(
-          "- Silahkan masukan nomor WhatsApp anda, contoh +628xxxx",
+          "- Silakan masukkan nomor WhatsApp Anda, misalnya +628xxxx",
         ),
       );
-      const phoneNumber = await question(chalk.green.bold(`– Nomor anda : `));
+      const phoneNumber = await question(chalk.green.bold(`– Nomor Anda: `));
       const code = await sock.requestPairingCode(phoneNumber);
       setTimeout(() => {
-        console.log(chalk.white.bold("- Kode Paring anda : " + code));
+        console.log(chalk.white.bold("- Kode Pairing Anda: " + code));
       }, 3000);
     }
-    //=====[ Connect to WhatsApp ]=======//
+
+    //=====[ Pembaruan Koneksi ]======
     sock.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect } = update;
       if (connection === "close") {
         const reason = new Boom(lastDisconnect?.error)?.output.statusCode;
-        console.log(chalk.green.bold(lastDisconnect.error));
         if (lastDisconnect.error == "Error: Stream Errored (unknown)") {
-          process.exit(0);
+          
         } else if (reason === DisconnectReason.badSession) {
           console.log(
-            chalk.red.bold(
-              `Bad Session File, Please Delete Session and Scan Again`,
-            ),
+            chalk.red.bold("File sesi buruk, Harap hapus sesi dan scan ulang"),
           );
-          process.exit(0);
+          
         } else if (reason === DisconnectReason.connectionClosed) {
           console.log(
-            chalk.yellow.bold("Connection closed, reconnecting. . ."),
+            chalk.yellow.bold("Koneksi ditutup, sedang mencoba untuk terhubung kembali..."),
           );
-          process.exit(0);
+
         } else if (reason === DisconnectReason.connectionLost) {
           console.log(
-            chalk.yellow.bold("Connection lost, trying to reconnect"),
+            chalk.yellow.bold("Koneksi hilang, mencoba untuk terhubung kembali..."),
           );
-          process.exit(0);
+          
         } else if (reason === DisconnectReason.connectionReplaced) {
           console.log(
-            chalk.green.bold(
-              "Connection Replaced, Another New Session Opened, Please Close Current Session First",
-            ),
+            chalk.green.bold("Koneksi diganti, sesi lain telah dibuka. Harap tutup sesi yang sedang berjalan."),
           );
           sock.logout();
         } else if (reason === DisconnectReason.loggedOut) {
           console.log(
-            chalk.green.bold(`Device Logged Out, Please Scan Again And Run.`),
+            chalk.green.bold("Perangkat logout, harap scan ulang."),
           );
           sock.logout();
         } else if (reason === DisconnectReason.restartRequired) {
-          console.log(chalk.green.bold("Restart Required, Restarting. . ."));
+          console.log(chalk.green.bold("Restart diperlukan, sedang memulai ulang..."));
           system();
         } else if (reason === DisconnectReason.timedOut) {
           console.log(
-            chalk.green.bold("Connection TimedOut, Reconnecting. . ."),
+            chalk.green.bold("Koneksi waktu habis, sedang mencoba untuk terhubung kembali..."),
           );
           system();
         }
       } else if (connection === "connecting") {
-        console.log(chalk.green.bold("Connecting, Please Be Patient. . ."));
+        console.log(chalk.blue.bold("Menghubungkan ke WhatsApp..."));
       } else if (connection === "open") {
-        console.log(chalk.green.bold("Bot Successfully Connected. . . ."));
+        console.log(chalk.green.bold("Bot berhasil terhubung."));
       }
     });
+
+    //=====[ Setelah Pembaruan Koneksi ]========//
     sock.ev.on("creds.update", saveCreds);
 
-    //=====[ After Connect to WhatsApp ]========//
     sock.ev.on("contacts.update", (update) => {
       for (let contact of update) {
         let id = jidNormalizedUser(contact.id);
@@ -195,6 +193,7 @@
           };
       }
     });
+
     sock.ev.on("contacts.upsert", (update) => {
       for (let contact of update) {
         let id = jidNormalizedUser(contact.id);
@@ -202,6 +201,7 @@
           store.contacts[id] = { ...(contact || {}), isContact: true };
       }
     });
+
     sock.ev.on("groups.update", (updates) => {
       for (const update of updates) {
         const id = update.id;
@@ -213,6 +213,7 @@
         }
       }
     });
+
     sock.ev.on("group-participants.update", ({ id, participants, action }) => {
       const metadata = store.groupMetadata[id];
       if (metadata) {
@@ -243,6 +244,7 @@
         }
       }
     });
+
     async function getMessage(key) {
       if (store) {
         const msg = await store.loadMessage(key.remoteJid, key.id);
@@ -252,25 +254,19 @@
         conversation: "NekoBot",
       };
     }
+
     sock.ev.on("messages.upsert", async (cht) => {
       if (cht.messages.length === 0) return;
       const chatUpdate = cht.messages[0];
       if (!chatUpdate.message) return;
       const userId = chatUpdate.key.id;
-          global.m = await serialize(chatUpdate, sock, store);
-          if (m.isBot) return 
-          if (!m.isOwner && db.list().settings.self) return;
-          await require("./system/handler.js")(m, sock, store);
+      global.m = await serialize(chatUpdate, sock, store);     
+      if (m.isBot) return;
+      require("./lib/logger.js")(m);      
+      if (!m.isOwner && db.list().settings.self) return;
+      await require("./system/handler.js")(m, sock, store);
     });
-    async function getMessage(key) {
-      if (store) {
-        const msg = await store.loadMessage(key.remoteJid, key.id);
-        return msg;
-      }
-      return {
-        conversation: "NekoBot",
-      };
-    }
+
     sock.ev.on("messages.update", async (chatUpdate) => {
       for (const { key, update } of chatUpdate) {
         if (update.pollUpdates && key.fromMe) {
@@ -290,6 +286,7 @@
         }
       }
     });
+
     return sock;
   }
   system();

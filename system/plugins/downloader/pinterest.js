@@ -1,42 +1,40 @@
-let neko = async (m, {
-    sock,
-    Func,
-    Scraper,
-    text,
-    Uploader
-}) => {
-    if (!text) throw "> Masukan query/link dari pinterest !"
-    if (Func.isUrl(text)) {
-        if (!/pinterest.com|pin.it/.test(text)) throw "> Masukan link dari pinterest !";
-        let data = await Scraper.pinterest.download(text);
-        let cap = "*– 乂 Pinterest - Downloader*\n"
-        cap += `> *-* Title : ${data.title}\n`
-        cap += `> *-* Keyword : ${data.keyword.join(", ")}\n`
-        cap += `> *-* Author : ${data.author.name}\n`
+let neko = async (m, { sock, Func, Scraper, text, Uploader }) => {
+  if (!text) throw "> *❌ Masukkan query atau link dari Pinterest!*";
 
-        sock.sendFile(m.cht, data.download, null, cap, m);
-    } else {
-        let data = await Scraper.pinterest.search(text);
-        let result = data.getRandom();
-        let caption = "*– 乂 Pinterest - search*\n"
-        caption += Object.entries(result).map(([a, b]) => `> *-* ${a.capitalize()} : ${b}`).join("\n");
+  if (Func.isUrl(text)) {
+    if (!/pinterest.com|pin.it/.test(text))
+      throw "> *❌ Masukkan link Pinterest yang valid!*";
+    let data = await Scraper.pinterest.download(text);
+    let cap = "*– 乂 Pinterest - Downloader 📌*\n";
+    cap += `> *🔹 Judul :* ${data.title}\n`;
+    cap += `> *🔹 Kata Kunci :* ${data.keyword.join(", ")}\n`;
+    cap += `> *🔹 Pengarang :* ${data.author.name}\n`;
 
-        m.reply({
-            image: {
-                url: result.image
-            },
-            caption
-        });
-    }
-}
+    sock.sendFile(m.cht, data.download, null, cap, m);
+  } else {
+    let data = await Scraper.pinterest.search(text);
+    let result = data.getRandom();
+    let caption = "*– 乂 Pinterest - Pencarian 🔍*\n";
+    caption += Object.entries(result)
+      .map(([a, b]) => `> *🔹 ${a.capitalize()} :* ${b}`)
+      .join("\n");
 
-neko.command = "pinterest"
-neko.alias = ["pin", "pindl"]
-neko.category = ["downloader", "tools"]
+    m.reply({
+      image: {
+        url: result.image,
+      },
+      caption,
+    });
+  }
+};
+
+neko.command = "pinterest";
+neko.alias = ["pin", "pindl"];
+neko.category = ["downloader", "tools"];
 neko.settings = {
-    limit: true
-}
-neko.description = "Mencari/download media dari pinterest !"
-neko.loading = true
+  limit: true,
+};
+neko.description = "🔎 Mencari atau mengunduh media dari Pinterest!";
+neko.loading = true;
 
-module.exports = neko
+module.exports = neko;
