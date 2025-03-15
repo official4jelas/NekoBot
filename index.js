@@ -20,6 +20,7 @@
   const simple = require("./lib/simple.js");
   const fs = require("node:fs");
   const pkg = require("./package.json");
+  const NodeCache = require("node-cache");
   const moment = require("moment-timezone");
   const Queque = require("./lib/queque.js");
   const messageQueue = new Queque();
@@ -108,11 +109,14 @@
 
   async function system() {
     const { state, saveCreds } = await useMultiFileAuthState(config.sessions);
+    const groupCache = new NodeCache({stdTTL: 5 * 60, useClones: false});
+      
     const sock = simple(
       {
         logger: pino({ level: "silent" }),
         printQRInTerminal: false,
         auth: state,
+        cachedGroupMetadata: async (jid) => groupCache.get(jid),
         version: [2, 3000, 1019441105],
         browser: Browsers.ubuntu("Edge"),
       },
@@ -202,9 +206,11 @@
       }
     });
 
-    sock.ev.on("groups.update", (updates) => {
+    sock.ev.on("groups.update", async(updates) => {
       for (const update of updates) {
         const id = update.id;
+        const metadata = await sock.groupMetadata(id);
+        groupCache.set(id, metadata)
         if (store.groupMetadata[id]) {
           store.groupMetadata[id] = {
             ...(store.groupMetadata[id] || {}),
@@ -216,6 +222,7 @@
 
     sock.ev.on("group-participants.update", ({ id, participants, action }) => {
       const metadata = store.groupMetadata[id];
+      groupCache.set(id, metadata)
       if (metadata) {
         switch (action) {
           case "add":

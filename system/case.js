@@ -31,7 +31,7 @@ module.exports = async (m,
 ) => {
     const quoted = m.isQuoted ? m.quoted : m;
     switch (m.command) {
-        case "rvo":
+                case "rvo":
         case "readviewonce": {
             if (!m.quoted) return m.reply("📝 Balas media dengan satu kali lihat");
             let messages = m.quoted
